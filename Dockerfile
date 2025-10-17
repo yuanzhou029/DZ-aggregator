@@ -29,8 +29,14 @@ RUN rm -rf subconverter/subconverter-darwin-amd \
     && rm -rf subconverter/subconverter-linux-arm \
     && rm -rf subconverter/subconverter-windows.exe
 
-# install dependencies
-RUN pip install -i ${PIP_INDEX_URL} --no-cache-dir -r requirements.txt
+# install dependencies and cron
+RUN apt-get update && apt-get -y install cron && \
+    pip install -i ${PIP_INDEX_URL} --no-cache-dir -r requirements.txt && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# copy entrypoint script
+COPY entrypoint.sh /aggregator/entrypoint.sh
+RUN chmod +x /aggregator/entrypoint.sh
 
 # start and run
-CMD ["python", "-u", "subscribe/collect.py", "--all", "--overwrite", "--skip"]
+ENTRYPOINT ["/aggregator/entrypoint.sh"]
