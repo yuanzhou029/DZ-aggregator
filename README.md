@@ -17,26 +17,51 @@
 略，自行探索。我才不会告诉你入口是 `collect.py` 和 `process.py`。**强烈建议使用后者，前者只是个小玩具**，配置参考 `subscribe/config/config.default.json`，详细文档见 [DeepWiki](https://deepwiki.com/wzdnzd/aggregator)
 
 
-## Docker 使用方法
-本项目支持通过 Docker 运行，镜像内置了 `cron` 定时任务服务，可以实现周期性地自动执行代理聚合任务。
+## Docker 一键启动 (推荐)
+本项目支持通过 Docker 快速部署。镜像内置了 `cron` 定时任务服务，并能自动初始化配置文件，极大简化了首次部署的流程。
 
-### 运行容器
-您可以使用以下命令来运行 Docker 容器：
+### 快速开始
+只需两步，即可启动您的代理聚合服务。
+
+**第一步：在您的电脑上创建一个空目录**
+这个目录将用于存放由容器自动生成的配置文件。
 ```bash
-docker run -d \
-  --name aggregator \
-  -e CONFIG_FILE_PATH="https://your-config-url/config.json" \
-  -e CRON_SCHEDULE="0 3 * * *" \
-  -e EXTRA_ARGS="--overwrite" \
-  your-dockerhub-username/dz-aggregator-main:latest
+# Linux / macOS
+mkdir -p ~/docker/aggregator_config
+
+# Windows (PowerShell)
+mkdir -p D:\docker\aggregator_config
 ```
+
+**第二步：运行 Docker 容器**
+执行以下命令。容器在首次启动时，会自动在您创建的目录中生成一份 `config.json` 模板文件。
+
+*   **Linux / macOS:**
+    ```bash
+    docker run -d \
+      --name aggregator \
+      -v ~/docker/aggregator_config:/aggregator/conf \
+      -e CRON_SCHEDULE="0 3 * * *" \
+      your-dockerhub-username/dz-aggregator-main:latest
+    ```
+
+*   **Windows (PowerShell):**
+    ```bash
+    docker run -d `
+      --name aggregator `
+      -v D:\docker\aggregator_config:/aggregator/conf `
+      -e CRON_SCHEDULE="0 3 * * *" `
+      your-dockerhub-username/dz-aggregator-main:latest
+    ```
+
+启动后，请检查您本地的 `~/docker/aggregator_config` 目录，会发现多了一个 `config.json` 文件。现在，您只需在本地修改这个文件，容器就会在下次定时任务执行时自动加载新配置。
 
 ### 环境变量说明
 | 环境变量 | 是否必需 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- |
-| `CONFIG_FILE_PATH` | **是** | (无) | 指定 `process.py` 使用的配置文件。可以是一个远程 URL，也可以是挂载到容器内的本地文件路径（例如 `/path/to/your/config.json`）。 |
 | `CRON_SCHEDULE` | 否 | `"0 3 * * *"` | 定义 `cron` 定时任务的执行周期，格式为标准的 crontab 格式。默认为每天凌晨3点。 |
-| `EXTRA_ARGS` | 否 | (无) | 传递给 `process.py` 脚本的额外命令行参数。例如，可以设置为 `"--overwrite --num 128"` 来覆盖旧代理并使用128个线程。 |
+| `EXTRA_ARGS` | 否 | (无) | 传递给 `process.py` 脚本的额外命令行参数。例如，可以设置为 `"--overwrite --num 128"`。 |
+| `CONFIG_FILE_PATH` | 否 | `/aggregator/conf/config.json` | **高级用法**。用于覆盖默认的配置文件路径。例如，您可以将其设置为一个远程 URL 来加载云端配置。 |
 
 ### 自动构建
 本仓库已配置 GitHub Actions，可以手动触发工作流，自动构建 Docker 镜像并将其推送到 Docker Hub。
