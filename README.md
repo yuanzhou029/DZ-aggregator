@@ -42,7 +42,7 @@ mkdir -p D:\docker\aggregator_config
       --name aggregator \
       -v ~/docker/aggregator_config:/aggregator/conf \
       -e EXTRA_ARGS="--overwrite" \
-      your-dockerhub-username/dz-aggregator-main:latest
+      yz029/dz-aggregator:latest
     ```
 
 *   **Windows (PowerShell):**
@@ -51,7 +51,7 @@ mkdir -p D:\docker\aggregator_config
       --name aggregator `
       -v D:\docker\aggregator_config:/aggregator/conf `
       -e EXTRA_ARGS="--overwrite" `
-      your-dockerhub-username/dz-aggregator-main:latest
+      yz029/dz-aggregator:latest
     ```
 
 启动后，请检查您本地的 `~/docker/aggregator_config` 目录，会发现多了一个 `config.json` 文件。现在，您只需在本地修改这个文件（特别是 `update.cron_schedule` 字段），容器就会在下次启动时应用新的定时周期。
