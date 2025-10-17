@@ -34,6 +34,9 @@ RUN apt-get update && apt-get -y install cron && \
     pip install -i ${PIP_INDEX_URL} --no-cache-dir -r requirements.txt && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# create mount point for config
+RUN mkdir /aggregator/conf
+
 # copy entrypoint script
 COPY entrypoint.sh /aggregator/entrypoint.sh
 RUN chmod +x /aggregator/entrypoint.sh
