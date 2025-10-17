@@ -27,7 +27,7 @@
 这个目录将用于存放由容器自动生成的配置文件。
 ```bash
 # Linux / macOS
-mkdir -p ~/docker/aggregator_config
+mkdir -p volume1/docker/aggregator_config
 
 # Windows (PowerShell)
 mkdir -p D:\docker\aggregator_config
@@ -40,7 +40,7 @@ mkdir -p D:\docker\aggregator_config
     ```bash
     docker run -d \
       --name aggregator \
-      -v volume1/docker/aggregator_config:/aggregator/conf \
+      -v /volume1/docker/aggregator_config:/aggregator/conf \
       -e EXTRA_ARGS="--overwrite" \
       registry.cyou/yz029/dz-aggregator:main
     ```
