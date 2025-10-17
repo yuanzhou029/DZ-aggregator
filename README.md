@@ -40,9 +40,9 @@ mkdir -p D:\docker\aggregator_config
     ```bash
     docker run -d \
       --name aggregator \
-      -v ~/docker/aggregator_config:/aggregator/conf \
+      -v volume1/docker/aggregator_config:/aggregator/conf \
       -e EXTRA_ARGS="--overwrite" \
-      yz029/dz-aggregator:latest
+      registry.cyou/yz029/dz-aggregator:main
     ```
 
 *   **Windows (PowerShell):**
@@ -51,7 +51,7 @@ mkdir -p D:\docker\aggregator_config
       --name aggregator `
       -v D:\docker\aggregator_config:/aggregator/conf `
       -e EXTRA_ARGS="--overwrite" `
-      yz029/dz-aggregator:latest
+      yz029/dz-aggregator:main
     ```
 
 启动后，请检查您本地的 `~/docker/aggregator_config` 目录，会发现多了一个 `config.json` 文件。现在，您只需在本地修改这个文件（特别是 `update.cron_schedule` 字段），容器就会在下次启动时应用新的定时周期。
@@ -77,6 +77,26 @@ mkdir -p D:\docker\aggregator_config
 
 ### 自动构建
 本仓库已配置 GitHub Actions，可以手动触发工作流，自动构建 Docker 镜像并将其推送到 Docker Hub。
+
+### 国内用户部署提示
+如果在中国大陆从 Docker Hub 拉取镜像速度较慢，可以配置 Docker 镜像加速器。
+
+**1. 配置 `daemon.json` 文件**
+打开或创建 Docker 的 `daemon.json` 文件（Linux: `/etc/docker/daemon.json`，Windows: `%programdata%\docker\config\daemon.json`），并添加以下内容：
+```json
+{
+  "registry-mirrors": [
+    "https://hub-mirror.c.163.com",
+    "https://mirror.baidubce.com"
+  ]
+}
+```
+
+**2. 重启 Docker 服务**
+*   **Linux:** 执行 `sudo systemctl daemon-reload && sudo systemctl restart docker`。
+*   **Windows / macOS:** 重启 Docker Desktop。
+
+配置完成后，`docker pull` 命令将自动通过国内镜像源加速。
 
 ## 免责申明
 + 本项目仅用作学习爬虫技术，请勿滥用，不要通过此工具做任何违法乱纪或有损国家利益之事
