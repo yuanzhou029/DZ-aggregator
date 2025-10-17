@@ -1,15 +1,10 @@
 #!/bin/bash
 
 # --- 默认设置 ---
-# 默认定时周期：每天凌晨3点
-CRON_SCHEDULE=${CRON_SCHEDULE:-"0 3 * * *"}
-
 # 容器内配置文件的默认路径
-# 如果用户将一个目录挂载到 /aggregator/conf，那么这个文件将位于宿主机上
 DEFAULT_CONFIG_PATH="/aggregator/conf/config.json"
 
 # 如果用户提供了 CONFIG_FILE_PATH 环境变量，则使用它；否则，使用默认路径
-# 这允许用户继续使用远程 URL 或其他自定义路径
 CONFIG_FILE_PATH=${CONFIG_FILE_PATH:-$DEFAULT_CONFIG_PATH}
 
 # 传递给 process.py 脚本的额外参数
@@ -37,6 +32,33 @@ if [ "$CONFIG_FILE_PATH" == "$DEFAULT_CONFIG_PATH" ]; then
         echo "在挂载目录中找到现有配置文件，将使用它。"
     fi
 fi
+
+# --- 从配置文件中读取定时任务周期 ---
+# 默认值
+CRON_SCHEDULE="0 3 * * *"
+
+if [ -f "$CONFIG_FILE_PATH" ]; then
+    # 使用 Python 从 JSON 文件中安全地提取 cron_schedule
+    # 如果 'update' 或 'cron_schedule' 键不存在，则返回空字符串
+    SCHEDULE_FROM_CONF=$(python -c "import json; import sys;
+try:
+    with open('$CONFIG_FILE_PATH', 'r') as f:
+        conf = json.load(f)
+    print(conf.get('update', {}).get('cron_schedule', ''))
+except (json.JSONDecodeError, FileNotFoundError):
+    sys.exit(1)
+")
+    
+    if [ -n "$SCHEDULE_FROM_CONF" ]; then
+        CRON_SCHEDULE="$SCHEDULE_FROM_CONF"
+    else
+        echo "在配置文件中未找到 'update.cron_schedule'，将使用默认定时周期。"
+    fi
+else
+    # 如果是远程 URL，则无法读取，使用默认值
+    echo "配置文件路径不是本地文件，无法读取 cron_schedule，将使用默认定时周期。"
+fi
+
 
 # --- 启动定时任务 ---
 echo "使用的定时任务周期: $CRON_SCHEDULE"

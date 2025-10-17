@@ -41,7 +41,7 @@ mkdir -p D:\docker\aggregator_config
     docker run -d \
       --name aggregator \
       -v ~/docker/aggregator_config:/aggregator/conf \
-      -e CRON_SCHEDULE="0 3 * * *" \
+      -e EXTRA_ARGS="--overwrite" \
       your-dockerhub-username/dz-aggregator-main:latest
     ```
 
@@ -50,18 +50,30 @@ mkdir -p D:\docker\aggregator_config
     docker run -d `
       --name aggregator `
       -v D:\docker\aggregator_config:/aggregator/conf `
-      -e CRON_SCHEDULE="0 3 * * *" `
+      -e EXTRA_ARGS="--overwrite" `
       your-dockerhub-username/dz-aggregator-main:latest
     ```
 
-启动后，请检查您本地的 `~/docker/aggregator_config` 目录，会发现多了一个 `config.json` 文件。现在，您只需在本地修改这个文件，容器就会在下次定时任务执行时自动加载新配置。
+启动后，请检查您本地的 `~/docker/aggregator_config` 目录，会发现多了一个 `config.json` 文件。现在，您只需在本地修改这个文件（特别是 `update.cron_schedule` 字段），容器就会在下次启动时应用新的定时周期。
+
+### 通过配置文件控制定时任务
+定时任务的执行周期现在由 `config.json` 文件中的 `update.cron_schedule` 字段控制。
+```json
+{
+  "...": "...",
+  "update": {
+    "cron_schedule": "0 3 * * *"
+  },
+  "...": "..."
+}
+```
+修改该值后，**需要重启容器**才能使新的定时任务周期生效。
 
 ### 环境变量说明
 | 环境变量 | 是否必需 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- |
-| `CRON_SCHEDULE` | 否 | `"0 3 * * *"` | 定义 `cron` 定时任务的执行周期，格式为标准的 crontab 格式。默认为每天凌晨3点。 |
 | `EXTRA_ARGS` | 否 | (无) | 传递给 `process.py` 脚本的额外命令行参数。例如，可以设置为 `"--overwrite --num 128"`。 |
-| `CONFIG_FILE_PATH` | 否 | `/aggregator/conf/config.json` | **高级用法**。用于覆盖默认的配置文件路径。例如，您可以将其设置为一个远程 URL 来加载云端配置。 |
+| `CONFIG_FILE_PATH` | 否 | `/aggregator/conf/config.json` | **高级用法**。用于覆盖默认的配置文件路径。例如，您可以将其设置为一个远程 URL 来加载云端配置（此模式下无法从文件读取定时任务周期）。 |
 
 ### 自动构建
 本仓库已配置 GitHub Actions，可以手动触发工作流，自动构建 Docker 镜像并将其推送到 Docker Hub。
